@@ -7,7 +7,6 @@ interface TrackStatusChartProps {
   event: string
   session: string
   laps: Lap[]
-  maxLap?: number
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -37,7 +36,7 @@ const LEGEND_ITEMS = [
   { status: '7', label: 'VSC End' },
 ]
 
-export default function TrackStatusChart({ year, event, session, laps, maxLap }: TrackStatusChartProps) {
+export default function TrackStatusChart({ year, event, session, laps }: TrackStatusChartProps) {
   const { data: trackStatus, isLoading, isError } = useTrackStatus(year, event, session)
 
   // Build cumulative lap time boundaries (same approach as WeatherChart)

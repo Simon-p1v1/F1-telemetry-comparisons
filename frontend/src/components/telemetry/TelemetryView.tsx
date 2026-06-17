@@ -383,7 +383,6 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
                                 laps={laps}
                                 drivers={selectedDrivers}
                                 driverColors={driverColors}
-                                maxLap={maxLap}
                               />
                             </SortableItem>
                           )
