@@ -101,6 +101,11 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
   const { data: laps } = useLaps(year, event, session)
   const { data: corners } = useCorners(year, event, session)
 
+  const maxLap = useMemo(() => {
+    if (!laps?.length) return 1
+    return Math.max(...laps.map(l => l.LapNumber))
+  }, [laps])
+
   const lapNumbers = useMemo<Record<string, number | null>>(() => {
     if (!laps) return {}
     const m: Record<string, number | null> = {}
@@ -285,7 +290,7 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
                                   selectedDrivers={selectedDrivers}
                                   driverColors={driverColors}
                                   driverDash={driverDash}
-
+                                  lapDomain={[1, maxLap]}
                                 />
                               </div>
                             </SortableItem>
@@ -338,6 +343,7 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
                                 event={event}
                                 session={session}
                                 laps={laps ?? []}
+                                maxLap={maxLap}
                               />
                             </SortableItem>
                           )
@@ -351,6 +357,7 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
                                 drivers={selectedDrivers}
                                 driverColors={driverColors}
                                 driverDash={driverDash}
+                                lapDomain={[1, maxLap]}
                               />
                             </SortableItem>
                           )
@@ -363,6 +370,7 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
                                 event={event}
                                 session={session}
                                 laps={laps ?? []}
+                                lapDomain={[1, maxLap]}
                               />
                             </SortableItem>
                           )
@@ -375,6 +383,7 @@ export default function TelemetryView({ year, event, session, selectedDrivers, r
                                 laps={laps}
                                 drivers={selectedDrivers}
                                 driverColors={driverColors}
+                                maxLap={maxLap}
                               />
                             </SortableItem>
                           )

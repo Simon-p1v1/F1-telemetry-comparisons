@@ -5,6 +5,7 @@ interface PitStopChartProps {
   laps: Lap[]
   drivers: string[]
   driverColors: Record<string, string>
+  maxLap?: number
 }
 
 const COMPOUND_COLORS: Record<string, string> = {
@@ -22,12 +23,13 @@ function compoundColor(compound: string | null): string {
 
 const isValidTime = (v: unknown): v is number => typeof v === 'number' && !isNaN(v) && v > 0
 
-export default function PitStopChart({ laps, drivers, driverColors }: PitStopChartProps) {
+export default function PitStopChart({ laps, drivers, driverColors, maxLap }: PitStopChartProps) {
   const { driverRows, lapCount } = useMemo(() => {
     if (!laps.length || !drivers.length) return { driverRows: [], lapCount: 0 }
 
     const allLapNums = laps.map((l) => l.LapNumber).filter(Boolean)
-    const lapCount = allLapNums.length ? Math.max(...allLapNums) : 0
+    const dataLapCount = allLapNums.length ? Math.max(...allLapNums) : 0
+    const lapCount = maxLap ?? dataLapCount
 
     const driverRows = drivers.map((driver) => {
       const driverLaps = laps
@@ -40,11 +42,19 @@ export default function PitStopChart({ laps, drivers, driverColors }: PitStopCha
         pitIn: isValidTime(l.PitInTime),
       }))
 
+      // Pad to lapCount with last known compound
+      if (cells.length < lapCount) {
+        const lastCompound = cells[cells.length - 1]?.compound ?? null
+        for (let lap = cells.length + 1; lap <= lapCount; lap++) {
+          cells.push({ lap, compound: lastCompound, pitIn: false })
+        }
+      }
+
       return { driver, cells }
     })
 
     return { driverRows, lapCount }
-  }, [laps, drivers])
+  }, [laps, drivers, maxLap])
 
   if (!driverRows.length || !lapCount) return null
 

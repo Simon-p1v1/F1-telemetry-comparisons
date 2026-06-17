@@ -3,16 +3,13 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    resolver 1.1.1.1 8.8.8.8 valid=30s ipv6=off;
-
     location /health {
         return 200 '{"status":"ok"}';
         add_header Content-Type application/json;
     }
 
     location /api/ {
-        set $backend "${BACKEND_URL}";
-        proxy_pass $backend/;
+        proxy_pass ${BACKEND_URL}/;
         proxy_ssl_server_name on;
         proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;

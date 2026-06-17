@@ -7,6 +7,7 @@ interface TrackStatusChartProps {
   event: string
   session: string
   laps: Lap[]
+  maxLap?: number
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -36,7 +37,7 @@ const LEGEND_ITEMS = [
   { status: '7', label: 'VSC End' },
 ]
 
-export default function TrackStatusChart({ year, event, session, laps }: TrackStatusChartProps) {
+export default function TrackStatusChart({ year, event, session, laps, maxLap }: TrackStatusChartProps) {
   const { data: trackStatus, isLoading, isError } = useTrackStatus(year, event, session)
 
   // Build cumulative lap time boundaries (same approach as WeatherChart)
@@ -87,9 +88,18 @@ export default function TrackStatusChart({ year, event, session, laps }: TrackSt
     })
   }, [trackStatus, lapBoundaries])
 
+  // Pad to maxLap so the strip aligns with other charts
+  const paddedLapStatusData = useMemo(() => {
+    if (!maxLap || lapStatusData.length >= maxLap) return lapStatusData
+    const last = lapStatusData[lapStatusData.length - 1]?.status ?? '1'
+    const padded = [...lapStatusData]
+    for (let lap = padded.length + 1; lap <= maxLap; lap++) padded.push({ lap, status: last })
+    return padded
+  }, [lapStatusData, maxLap])
+
   const activeLegendStatuses = useMemo(
-    () => new Set(lapStatusData.map((d) => d.status)),
-    [lapStatusData],
+    () => new Set(paddedLapStatusData.map((d) => d.status)),
+    [paddedLapStatusData],
   )
 
   if (isLoading) {
@@ -101,7 +111,7 @@ export default function TrackStatusChart({ year, event, session, laps }: TrackSt
     )
   }
   if (isError) return <div className="text-[10px] text-red-400 py-1">Failed to load track status</div>
-  if (!lapStatusData.length) return <div className="text-[10px] text-muted py-1">No track status data</div>
+  if (!paddedLapStatusData.length) return <div className="text-[10px] text-muted py-1">No track status data</div>
 
   return (
     <div className="w-full">
@@ -119,7 +129,7 @@ export default function TrackStatusChart({ year, event, session, laps }: TrackSt
 
       {/* Colored strip — left margin matches recharts YAxis width (36px) + padding */}
       <div className="flex items-stretch rounded overflow-hidden" style={{ height: 18, marginLeft: 36, marginRight: 8 }}>
-        {lapStatusData.map(({ lap, status }) => (
+        {paddedLapStatusData.map(({ lap, status }) => (
           <div
             key={lap}
             className="flex-1 relative group"
@@ -136,8 +146,8 @@ export default function TrackStatusChart({ year, event, session, laps }: TrackSt
 
       {/* Lap number axis */}
       <div className="flex items-center text-[8px] text-muted font-mono mt-0.5" style={{ marginLeft: 36, marginRight: 8 }}>
-        {lapStatusData
-          .filter((_, i) => i === 0 || (i + 1) % Math.ceil(lapStatusData.length / 10) === 0)
+        {paddedLapStatusData
+          .filter((_, i) => i === 0 || (i + 1) % Math.ceil(paddedLapStatusData.length / 10) === 0)
           .map(({ lap }) => (
             <div key={lap} className="flex-1 text-center" style={{ minWidth: 0 }}>
               {lap}
